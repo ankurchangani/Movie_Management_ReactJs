@@ -1,0 +1,29 @@
+.scroll::-webkit-scrollbar {
+    background-color: #1f2a3d;
+    border-radius: 10rem;
+    width: 6px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+    background-color: #7296a7;
+    border-radius: 10rem;
+}
+
+.validInput:invalid {
+    border: 2px solid red;
+}
+
+.validInput:valid {
+    border: 2px solid #686f7d;
+}
+
+/* .error-massage {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none;
+}
+
+.validInput:invalid + .error-massage {
+    display: block;
+} */
