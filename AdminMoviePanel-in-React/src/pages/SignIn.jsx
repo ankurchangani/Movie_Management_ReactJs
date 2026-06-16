@@ -3,8 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { isOpenAct, SignInPoPup, SignInThunk, SignUpBackAct } from "../services/actions/AuthAction";
-import GoogleIcon from '@mui/icons-material/Google';
+import { isOpenAct, SignInThunk, SignUpBackAct } from "../services/actions/AuthAction";
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { useGsap3DTilt } from "../hooks/useGsap3DTilt";
 import gsap from "gsap";
@@ -32,14 +31,12 @@ const SignIn = () => {
     }
 
     useEffect(() => {
-        if (isSignIn) {
+        if (isSignIn || localStorage.getItem("uid")) {
             navigate("/")
         }
     }, [isSignIn, navigate])
 
-    const GoogleSignIn = () => {
-        dispatch(SignInPoPup())
-    }
+    // Google Sign-In removed
 
     useEffect(() => {
         dispatch(SignUpBackAct())
@@ -114,7 +111,7 @@ const SignIn = () => {
                                                     Password
                                                 </label>
                                                 <Link
-                                                    to={"/"}
+                                                    to={"/forget-password"}
                                                     className="text-[11px] text-indigo-400 hover:text-indigo-300 no-underline transition"
                                                 >
                                                     Forgot Password?
@@ -143,39 +140,7 @@ const SignIn = () => {
                                         </div>
                                     </form>
 
-                                    <div className="anim-field my-4 flex items-center">
-                                        <div className="flex-grow border-t border-white/10"></div>
-                                        <span className="px-3 text-[10px] text-slate-500 font-bold uppercase tracking-wider">OR</span>
-                                        <div className="flex-grow border-t border-white/10"></div>
-                                    </div>
-
-                                    {/* Google sign-in */}
-                                    <div className="anim-field flex justify-center">
-                                        <Button
-                                            variant="contained"
-                                            fullWidth
-                                            startIcon={<GoogleIcon />}
-                                            sx={{
-                                                backgroundColor: "rgba(234, 67, 53, 0.1)",
-                                                border: "1px solid rgba(234, 67, 53, 0.3)",
-                                                color: "#fca5a5",
-                                                fontWeight: "bold",
-                                                textTransform: "none",
-                                                borderRadius: "12px",
-                                                paddingY: "9px",
-                                                fontSize: "0.85rem",
-                                                boxShadow: "none",
-                                                ":hover": { 
-                                                    backgroundColor: "rgba(234, 67, 53, 0.2)",
-                                                    borderColor: "rgba(234, 67, 53, 0.5)",
-                                                    boxShadow: "0 0 15px rgba(234, 67, 53, 0.2)"
-                                                },
-                                            }}
-                                            onClick={GoogleSignIn}
-                                        >
-                                            Sign in with Google
-                                        </Button>
-                                    </div>
+                                    {/* Google sign-in option removed */}
 
                                     {/* Nav link footer */}
                                     <div className="anim-field text-center pt-2">

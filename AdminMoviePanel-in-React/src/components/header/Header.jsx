@@ -28,10 +28,11 @@ const Header = () => {
     };
 
     useEffect(() => {
-        if (!admin) {
+        const uid = localStorage.getItem("uid");
+        if (!admin && !uid) {
             navigate('/signin');
         }
-    }, [admin]);
+    }, [admin, navigate]);
 
     useEffect(() => {
         const path = location.pathname;

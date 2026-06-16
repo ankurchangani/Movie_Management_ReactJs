@@ -4,11 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
   isOpenAct,
-  SignInPoPup,
   SignInThunk,
   SignUpBackAct,
 } from "../services/actions/AuthAction";
-import GoogleIcon from '@mui/icons-material/Google';
 import gsap from "gsap";
 
 const SignIn = () => {
@@ -33,10 +31,6 @@ const SignIn = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(SignInThunk(signIn));
-  };
-
-  const GoogleSignIn = () => {
-    dispatch(SignInPoPup());
   };
 
   useEffect(() => {
@@ -133,23 +127,7 @@ const SignIn = () => {
           </div>
         </form>
 
-        <div ref={(el) => (elementsRef.current[4] = el)} className="flex items-center justify-between text-xs text-slate-500 my-4">
-          <div className="w-full h-px bg-slate-800"></div>
-          <span className="px-3 uppercase tracking-widest text-[10px] font-bold">OR</span>
-          <div className="w-full h-px bg-slate-800"></div>
-        </div>
-
-        <div ref={(el) => (elementsRef.current[5] = el)} className="flex justify-center">
-          <button
-            onClick={GoogleSignIn}
-            className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 hover:text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-3 text-sm shadow-sm"
-          >
-            <GoogleIcon className="text-red-500 !text-lg" />
-            <span>Sign in with Google</span>
-          </button>
-        </div>
-
-        <div ref={(el) => (elementsRef.current[6] = el)} className="text-center pt-2 space-y-2 text-xs">
+        <div ref={(el) => (elementsRef.current[4] = el)} className="text-center pt-2 space-y-2 text-xs">
           <p className="text-slate-400">
             Don’t have an account?{" "}
             <Link

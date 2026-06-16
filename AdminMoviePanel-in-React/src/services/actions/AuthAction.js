@@ -1,6 +1,6 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
-import { auth, db, provider } from "../../../FireBase";
-import { addDoc, collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendPasswordResetEmail } from "firebase/auth";
+import { auth, db } from "../../../FireBase";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 
 const SignInAct = (data) => {
     return {
@@ -62,12 +62,13 @@ export const SignUpThunk = (data) => async dispatch => {
     try {
         dispatch(LoadingAct());
         const res = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        await updateProfile(res.user, { displayName: data.name });
         const userData = {
             uid: res.user.uid,
             email: res.user.email,
-            displayName: res.user.displayName || data.name
+            displayName: data.name
         };
-        await addDoc(collection(db, "admins"), userData);
+        await setDoc(doc(db, "admins", res.user.uid), userData);
         dispatch(SignUpAct());
     } catch (error) {
         let errorMessage = "An error occurred. Please try again.";
@@ -96,17 +97,25 @@ export const SignInThunk = (data) => async dispatch => {
     try {
         dispatch(LoadingAct());
         const res = await signInWithEmailAndPassword(auth, data.email, data.password);
-        localStorage.setItem('uid', JSON.stringify(res.user.uid));
-        const userdata = {
-            displayName: res.user.displayName,
-            uid: res.user.uid,
-            email: res.user.email
+        
+        // Fetch matching admin document to verify authorization
+        const adminDocRef = doc(db, "admins", res.user.uid);
+        const adminDoc = await getDoc(adminDocRef);
+        
+        if (!adminDoc.exists()) {
+            await signOut(auth);
+            throw { code: "auth/not-an-admin", message: "You are not authorized as an administrator." };
         }
-        dispatch(SignInAct(userdata));
+        
+        const userData = adminDoc.data();
+        localStorage.setItem('uid', JSON.stringify(res.user.uid));
+        dispatch(SignInAct(userData));
     } catch (error) {
         let errorMessage = "An error occurred. Please try again.";
 
-        if (error.code === "auth/invalid-credential") {
+        if (error.code === "auth/not-an-admin") {
+            errorMessage = error.message;
+        } else if (error.code === "auth/invalid-credential") {
             errorMessage = "No user found with this email and password please sign up.";
         }else if (error.code === "auth/too-many-requests") {
             errorMessage = "Too many requests detected. Please wait a moment and after try again";
@@ -123,21 +132,26 @@ export const SignInThunk = (data) => async dispatch => {
     }
 }
 
-// google Sign In 
-export const SignInPoPup = () => async dispatch => {
+// Forget Password
+export const ForgetPasswordThunk = (email, onSuccess, onError) => async dispatch => {
     try {
-        const res = await signInWithPopup(auth, provider);
-        const userData = {
-            uid: res.user.uid,
-            email: res.user.email,
-            displayName: res.user.displayName,
-            photoURL: res.user.photoURL
-        }
-        await addDoc(collection(db, "admins"), userData);
-        localStorage.setItem("uid", JSON.stringify(res.user.uid));
-        dispatch(SignInAct(userData));
+        dispatch(LoadingAct());
+        await sendPasswordResetEmail(auth, email);
+        if (onSuccess) onSuccess();
     } catch (error) {
-        console.error("Sign in error:", error);
+        let errorMessage = "An error occurred. Please try again.";
+        if (error.code === "auth/user-not-found") {
+            errorMessage = "No user found with this email address.";
+        } else if (error.code === "auth/invalid-email") {
+            errorMessage = "Please enter a valid email address.";
+        } else if (error.code === "auth/missing-email") {
+            errorMessage = "Please enter your email address.";
+        } else {
+            errorMessage = error.message;
+        }
+        dispatch(ErrorAct(errorMessage));
+        dispatch(isOpenAct(true));
+        if (onError) onError(errorMessage);
     }
 }
 
@@ -168,14 +182,20 @@ export const loginAdminThunk = () => async dispatch => {
 export const HomeNavigateThunk = () => async dispatch => {
     try {
         const uid = JSON.parse(localStorage.getItem("uid"));
-        const res = await getDocs(collection(db, "admins"));
-        const userget = res.docs.find(doc => doc.data().uid === uid);
-        if (userget) {
-            const userData = userget.data();
+        if (!uid) return;
+        
+        const adminDocRef = doc(db, "admins", uid);
+        const adminDoc = await getDoc(adminDocRef);
+        
+        if (adminDoc.exists()) {
+            const userData = adminDoc.data();
             console.log("validation", userData);
             dispatch(SignInAct(userData));
+        } else {
+            localStorage.removeItem("uid");
+            dispatch(SignOutAct());
         }
     } catch (err) {
-        console.error("Error get recipes:", err);
+        console.error("Error verifying admin navigation:", err);
     }
 }

@@ -1,16 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard'; 
+import Dashboard from './pages/Dashboard';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home';
 import AddItems from './pages/AddItem';
 import SignUp from './pages/SignUp';
+import ForgatePassword from './pages/ForgatePassword';
 import Catalog from './pages/Catalog';
 import EditItem from './pages/Edititem';
 import SingleMovie from './pages/SingleMovieView';
 import GetUsers from './pages/Users';
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
-// import EditProfile from './pages/EditProfile';
 
 function App() {
   return (
@@ -19,6 +19,7 @@ function App() {
         <Routes>
           <Route path="signin" element={<SignIn />} />
           <Route path="signup" element={<SignUp />} />
+          <Route path="forget-password" element={<ForgatePassword />} />
           <Route path="/" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="additems" element={<AddItems />} />
