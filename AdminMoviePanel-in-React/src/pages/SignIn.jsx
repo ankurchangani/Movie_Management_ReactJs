@@ -1,13 +1,15 @@
 import { Alert, Button, Snackbar } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { isOpenAct, SignInPoPup, SignInThunk, SignUpBackAct } from "../services/actions/AuthAction";
-import { use } from "react";
+import GoogleIcon from '@mui/icons-material/Google';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import { useGsap3DTilt } from "../hooks/useGsap3DTilt";
+import gsap from "gsap";
 
 const SignIn = () => {
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { isSignIn, isLoading, Error, isOpen } = useSelector(state => state.AuthReducer);
@@ -16,6 +18,9 @@ const SignIn = () => {
         email: "",
         password: "",
     })
+
+    const cardRef = useGsap3DTilt({ maxRotation: 6, scale: 1.01 });
+    const contentRef = useRef(null);
 
     const handleChange = (e) => {
         setsignIn({ ...signIn, [e.target.name]: e.target.value })
@@ -30,7 +35,7 @@ const SignIn = () => {
         if (isSignIn) {
             navigate("/")
         }
-    }, [isSignIn])
+    }, [isSignIn, navigate])
 
     const GoogleSignIn = () => {
         dispatch(SignInPoPup())
@@ -38,115 +43,158 @@ const SignIn = () => {
 
     useEffect(() => {
         dispatch(SignUpBackAct())
-    }, [])
+    }, [dispatch])
+
+    // GSAP staggered entrance animations
+    useEffect(() => {
+        if (contentRef.current) {
+            const ctx = gsap.context(() => {
+                gsap.fromTo(".anim-field",
+                    { opacity: 0, y: 15 },
+                    { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power2.out" }
+                );
+            }, contentRef);
+            return () => ctx.revert();
+        }
+    }, []);
 
     return (
         <>
             <Snackbar open={isOpen} autoHideDuration={6000} onClose={() => dispatch(isOpenAct(false))} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-                <Alert onClose={() => dispatch(isOpenAct(false))} severity="error">
+                <Alert onClose={() => dispatch(isOpenAct(false))} severity="error" className="glass-panel text-white">
                     {Error}
                 </Alert>
             </Snackbar>
-            <section className="flex justify-center items-center h-screen bg-[#0f172a]">
-        <Container>
-          <Row className="justify-content-center">
-            <Col lg={5}>
-              <div className="w-full p-8 bg-[#1e293b] shadow-lg rounded-2xl border border-[#334155]">
-                <h2 className="text-white text-2xl font-semibold text-center mb-6">
-                  Sign In to <span className="text-[#facc15]">Your Account</span>
-                </h2>
+            
+            <section className="flex justify-center items-center min-h-screen bg-[#08090d] relative overflow-hidden px-4">
+                {/* Floating ambient glow blobs for 3D depth */}
+                <div className="ambient-glow-1 top-10 left-10"></div>
+                <div className="ambient-glow-2 bottom-10 right-10"></div>
 
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-300 mb-1"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="text"
-                      id="email"
-                      name="email"
-                      value={signIn.email}
-                      placeholder="Enter Your Email"
-                      className="mt-2 block bg-transparent text-white w-full px-4 py-2 border border-gray-500 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="mb-6">
-                    <label
-                      htmlFor="password"
-                      className="block text-sm font-medium text-gray-300"
-                    >
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      value={signIn.password}
-                      placeholder="Enter Your Password"
-                      className="mt-2 block bg-transparent text-white w-full px-4 py-2 border border-gray-500 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div>
-                    <button
-                      type="submit"
-                      className="w-full bg-[#3b82f6] text-white py-2 px-4 rounded-md hover:bg-[#2563eb] transition duration-300"
-                    >
-                      {isLoading ? "Signing In..." : "Sign In"}
-                    </button>
-                  </div>
-                </form>
+                <Container className="relative z-10">
+                    <Row className="justify-content-center">
+                        <Col xs={12} sm={10} md={6} lg={5} xl={4}>
+                            <div 
+                                ref={cardRef}
+                                className="w-full p-6 md:p-8 glass-card rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden"
+                            >
+                                <div ref={contentRef} className="space-y-6">
+                                    {/* Logo header */}
+                                    <div className="text-center anim-field space-y-1">
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 mx-auto mb-3">
+                                            <LockOpenIcon className="text-white" />
+                                        </div>
+                                        <h2 className="text-white text-xl md:text-2xl font-bold tracking-tight">
+                                            Sign In to <span className="text-indigo-400 font-bold">MovieMate</span>
+                                        </h2>
+                                        <p className="text-slate-400 text-xs">Enter credentials to unlock admin console</p>
+                                    </div>
 
-                <div className="my-6 flex items-center">
-                  <div className="flex-grow border-t border-gray-600"></div>
-                  <span className="px-3 text-gray-400">OR</span>
-                  <div className="flex-grow border-t border-gray-600"></div>
-                </div>
+                                    {/* Form */}
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        <div className="anim-field">
+                                            <label htmlFor="email" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                                Email Address
+                                            </label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                name="email"
+                                                value={signIn.email}
+                                                placeholder="admin@moviemate.com"
+                                                className="block w-full px-4 py-2.5 rounded-xl glow-input text-white text-sm"
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="anim-field">
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <label htmlFor="password" className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                                    Password
+                                                </label>
+                                                <Link
+                                                    to={"/"}
+                                                    className="text-[11px] text-indigo-400 hover:text-indigo-300 no-underline transition"
+                                                >
+                                                    Forgot Password?
+                                                </Link>
+                                            </div>
+                                            <input
+                                                type="password"
+                                                id="password"
+                                                name="password"
+                                                value={signIn.password}
+                                                placeholder="••••••••"
+                                                className="block w-full px-4 py-2.5 rounded-xl glow-input text-white text-sm"
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="anim-field pt-2">
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading}
+                                                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition duration-300 transform hover:scale-102 flex items-center justify-center text-sm"
+                                            >
+                                                {isLoading ? "Signing In..." : "Sign In"}
+                                            </button>
+                                        </div>
+                                    </form>
 
-                <div className="flex justify-center">
-                  <Button
-                    variant="contained"
-                    sx={{
-                      backgroundColor: "#ea4335",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      paddingX: 3,
-                      ":hover": { backgroundColor: "#c53929" },
-                    }}
-                    onClick={GoogleSignIn}
-                  >
-                    Sign in with Google
-                  </Button>
-                </div>
+                                    <div className="anim-field my-4 flex items-center">
+                                        <div className="flex-grow border-t border-white/10"></div>
+                                        <span className="px-3 text-[10px] text-slate-500 font-bold uppercase tracking-wider">OR</span>
+                                        <div className="flex-grow border-t border-white/10"></div>
+                                    </div>
 
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-300">
-                    Don’t have an account?{" "}
-                    <Link
-                      to={"/signup"}
-                      className="text-[#facc15] hover:underline"
-                    >
-                      Sign up!
-                    </Link>
-                  </p>
-                  <p className="text-sm mt-2">
-                    <Link
-                      to={"/"}
-                      className="text-blue-400 hover:underline no-underline"
-                    >
-                      Forgot Password?
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </section>
+                                    {/* Google sign-in */}
+                                    <div className="anim-field flex justify-center">
+                                        <Button
+                                            variant="contained"
+                                            fullWidth
+                                            startIcon={<GoogleIcon />}
+                                            sx={{
+                                                backgroundColor: "rgba(234, 67, 53, 0.1)",
+                                                border: "1px solid rgba(234, 67, 53, 0.3)",
+                                                color: "#fca5a5",
+                                                fontWeight: "bold",
+                                                textTransform: "none",
+                                                borderRadius: "12px",
+                                                paddingY: "9px",
+                                                fontSize: "0.85rem",
+                                                boxShadow: "none",
+                                                ":hover": { 
+                                                    backgroundColor: "rgba(234, 67, 53, 0.2)",
+                                                    borderColor: "rgba(234, 67, 53, 0.5)",
+                                                    boxShadow: "0 0 15px rgba(234, 67, 53, 0.2)"
+                                                },
+                                            }}
+                                            onClick={GoogleSignIn}
+                                        >
+                                            Sign in with Google
+                                        </Button>
+                                    </div>
+
+                                    {/* Nav link footer */}
+                                    <div className="anim-field text-center pt-2">
+                                        <p className="text-xs text-slate-400 m-0">
+                                            Don’t have an account?{" "}
+                                            <Link
+                                                to={"/signup"}
+                                                className="text-indigo-400 hover:text-indigo-300 font-bold no-underline hover:underline transition"
+                                            >
+                                                Create account
+                                            </Link>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Col>
+                    </Row>
+                </Container>
+            </section>
         </>
     )
 }

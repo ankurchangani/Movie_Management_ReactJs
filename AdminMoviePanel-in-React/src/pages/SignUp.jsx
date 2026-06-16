@@ -1,21 +1,27 @@
 import { Alert, Button, Snackbar } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { ErrorAct, isOpenAct, SignUpThunk } from "../services/actions/AuthAction";
 import { Link, useNavigate } from "react-router-dom";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { useGsap3DTilt } from "../hooks/useGsap3DTilt";
+import gsap from "gsap";
 
 const SignUp = () => {
-
     const { isLoading, isCreated, Error, isOpen } = useSelector(state => state.AuthReducer);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    
     const [signUp, setsignUp] = useState({
         name: "",
         email: "",
         password: "",
         confirmPassword: "",
     })
+
+    const cardRef = useGsap3DTilt({ maxRotation: 6, scale: 1.01 });
+    const contentRef = useRef(null);
 
     const handleChange = (e) => {
         setsignUp({ ...signUp, [e.target.name]: e.target.value })
@@ -36,40 +42,143 @@ const SignUp = () => {
         if (isCreated) {
             navigate("/signin")
         }
-    }, [isCreated])
+    }, [isCreated, navigate])
+
+    // GSAP staggered entrance animations
+    useEffect(() => {
+        if (contentRef.current) {
+            const ctx = gsap.context(() => {
+                gsap.fromTo(".anim-field",
+                    { opacity: 0, y: 15 },
+                    { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power2.out" }
+                );
+            }, contentRef);
+            return () => ctx.revert();
+        }
+    }, []);
 
     return (
         <>
             <Snackbar open={isOpen} autoHideDuration={6000} onClose={() => dispatch(isOpenAct(false))} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-                <Alert onClose={() => dispatch(isOpenAct(false))} severity="error">
+                <Alert onClose={() => dispatch(isOpenAct(false))} severity="error" className="glass-panel text-white">
                     {Error}
                 </Alert>
             </Snackbar>
-            <section className="flex justify-center h-screen items-center bg-[#1e1e2f]">
-                <Container>
+            
+            <section className="flex justify-center items-center min-h-screen bg-[#08090d] relative overflow-hidden px-4">
+                {/* Floating ambient glow blobs for 3D depth */}
+                <div className="ambient-glow-1 top-10 left-10"></div>
+                <div className="ambient-glow-2 bottom-10 right-10"></div>
+
+                <Container className="relative z-10">
                     <Row className="justify-content-center">
-                        <Col lg={5}>
-                            <div className="w-full p-8 bg-[#1e1e2f] shadow-md rounded-lg border-2 border-[#3c3f58]">
-                                <form onSubmit={handleSubmit}>
-                                    <div className="mb-4">
-                                        <label htmlFor="name" className="block text-sm font-medium text-white mb-1">Full Name</label>
-                                        <input type="text" id="name" name="name" value={signUp.name} placeholder="Enter Your Full Name" className="mt-2 block bg-transparent text-white w-full px-4 py-2 border-2 border-[#3c3f58] rounded-md shadow-sm focus:ring-[#6366f1] focus:border-[#6366f1] outline-none" onChange={handleChange} />
+                        <Col xs={12} sm={10} md={6} lg={5} xl={4}>
+                            <div 
+                                ref={cardRef}
+                                className="w-full p-6 md:p-8 glass-card rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden"
+                            >
+                                <div ref={contentRef} className="space-y-5">
+                                    {/* Logo header */}
+                                    <div className="text-center anim-field space-y-1">
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 mx-auto mb-3">
+                                            <PersonAddIcon className="text-white" />
+                                        </div>
+                                        <h2 className="text-white text-xl md:text-2xl font-bold tracking-tight">
+                                            Create Account
+                                        </h2>
+                                        <p className="text-slate-400 text-xs">Register your MovieMate admin access</p>
                                     </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="email" className="block text-sm font-medium text-white mb-1">Email</label>
-                                        <input type="email" id="email" name="email" value={signUp.email} placeholder="Enter Your Email" className="mt-2 block bg-transparent text-white w-full px-4 py-2 border-2 border-[#3c3f58] rounded-md shadow-sm focus:ring-[#6366f1] focus:border-[#6366f1] outline-none" onChange={handleChange} />
+
+                                    {/* Form */}
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        <div className="anim-field">
+                                            <label htmlFor="name" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                                Full Name
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                id="name" 
+                                                name="name" 
+                                                value={signUp.name} 
+                                                placeholder="John Doe" 
+                                                className="block w-full px-4 py-2.5 rounded-xl glow-input text-white text-sm" 
+                                                onChange={handleChange}
+                                                required 
+                                            />
+                                        </div>
+                                        
+                                        <div className="anim-field">
+                                            <label htmlFor="email" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                                Email Address
+                                            </label>
+                                            <input 
+                                                type="email" 
+                                                id="email" 
+                                                name="email" 
+                                                value={signUp.email} 
+                                                placeholder="admin@moviemate.com" 
+                                                className="block w-full px-4 py-2.5 rounded-xl glow-input text-white text-sm" 
+                                                onChange={handleChange}
+                                                required 
+                                            />
+                                        </div>
+                                        
+                                        <div className="anim-field">
+                                            <label htmlFor="password" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                                Password
+                                            </label>
+                                            <input 
+                                                type="password" 
+                                                id="password" 
+                                                name="password" 
+                                                value={signUp.password} 
+                                                placeholder="••••••••" 
+                                                className="block w-full px-4 py-2.5 rounded-xl glow-input text-white text-sm" 
+                                                onChange={handleChange}
+                                                required 
+                                            />
+                                        </div>
+                                        
+                                        <div className="anim-field">
+                                            <label htmlFor="confirmPassword" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                                Confirm Password
+                                            </label>
+                                            <input 
+                                                type="password" 
+                                                id="confirmPassword" 
+                                                name="confirmPassword" 
+                                                value={signUp.confirmPassword} 
+                                                placeholder="••••••••" 
+                                                className="block w-full px-4 py-2.5 rounded-xl glow-input text-white text-sm" 
+                                                onChange={handleChange}
+                                                required 
+                                            />
+                                        </div>
+                                        
+                                        <div className="anim-field pt-2">
+                                            <button 
+                                                type="submit" 
+                                                disabled={isLoading}
+                                                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition duration-300 transform hover:scale-102 flex items-center justify-center text-sm"
+                                            >
+                                                {isLoading ? "Creating..." : "Sign Up"}
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    {/* Nav link footer */}
+                                    <div className="anim-field text-center pt-2">
+                                        <p className="text-xs text-slate-400 m-0">
+                                            Already have an account?{" "}
+                                            <Link
+                                                to={"/signin"}
+                                                className="text-indigo-400 hover:text-indigo-300 font-bold no-underline hover:underline transition"
+                                            >
+                                                Sign In
+                                            </Link>
+                                        </p>
                                     </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="password" className="block text-sm font-medium text-white">Password</label>
-                                        <input type="password" id="password" name="password" value={signUp.password} placeholder="Enter Your Password" className="mt-2 block w-full bg-transparent text-white px-4 py-2 border-2 border-[#3c3f58] rounded-md shadow-sm focus:ring-[#6366f1] focus:border-[#6366f1] outline-none" onChange={handleChange} />
-                                    </div>
-                                    <div className="mb-6">
-                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">Confirm Password</label>
-                                        <input type="password" id="confirmPassword" name="confirmPassword" value={signUp.confirmPassword} placeholder="Confirm Your Password" className="mt-2 block w-full bg-transparent text-white px-4 py-2 border-2 border-[#3c3f58] rounded-md shadow-sm focus:ring-[#6366f1] focus:border-[#6366f1] outline-none" onChange={handleChange} />
-                                    </div>
-                                    <p className="text-sm text-white text-center mb-4">Already have an account? <Link to="/signin" className="text-[#6366f1] hover:underline">Sign In!</Link></p>
-                                    <button type="submit" className="w-full bg-[#6366f1] text-white py-2 px-4 rounded-md hover:bg-[#4f46e5] focus:outline-none focus:ring-2 focus:ring-[#6366f1]">{isLoading ? "Loading..." : "Sign Up"}</button>
-                                </form>
+                                </div>
                             </div>
                         </Col>
                     </Row>

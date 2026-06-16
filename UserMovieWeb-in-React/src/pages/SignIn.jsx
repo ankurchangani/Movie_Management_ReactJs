@@ -1,6 +1,5 @@
-import { Alert, Button, Snackbar } from "@mui/material";
-import { useEffect, useState } from "react";
-import { Col, Container, Row } from "react-bootstrap";
+import { Alert, Snackbar } from "@mui/material";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -9,6 +8,8 @@ import {
   SignInThunk,
   SignUpBackAct,
 } from "../services/actions/AuthAction";
+import GoogleIcon from '@mui/icons-material/Google';
+import gsap from "gsap";
 
 const SignIn = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,9 @@ const SignIn = () => {
     email: "",
     password: "",
   });
+
+  const cardRef = useRef(null);
+  const elementsRef = useRef([]);
 
   const handleChange = (e) => {
     setsignIn({ ...signIn, [e.target.name]: e.target.value });
@@ -45,8 +49,18 @@ const SignIn = () => {
     }
   }, [isSignIn]);
 
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    tl.fromTo(cardRef.current, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 })
+      .fromTo(elementsRef.current.filter(Boolean), { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08 }, "-=0.5");
+  }, []);
+
   return (
-    <>
+    <div className="relative min-h-screen bg-[#0b0f19] flex items-center justify-center px-6 overflow-hidden select-none">
+      {/* Background glow effects */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none"></div>
+
       {/* Error Snackbar */}
       <Snackbar
         open={isOpen}
@@ -57,114 +71,105 @@ const SignIn = () => {
         <Alert
           onClose={() => dispatch(isOpenAct(false))}
           severity="error"
-          sx={{ backgroundColor: "#ef4444", color: "#fff" }}
+          className="bg-red-600 text-white rounded-xl shadow-lg border border-red-500"
         >
           {Error}
         </Alert>
       </Snackbar>
 
-      {/* Sign In Section */}
-      <section className="flex justify-center items-center h-screen bg-[#0f172a]">
-        <Container>
-          <Row className="justify-content-center">
-            <Col lg={5}>
-              <div className="w-full p-8 bg-[#1e293b] shadow-lg rounded-2xl border border-[#334155]">
-                <h2 className="text-white text-2xl font-semibold text-center mb-6">
-                  Sign In to <span className="text-[#facc15]">Your Account</span>
-                </h2>
+      {/* Form Card */}
+      <div ref={cardRef} className="max-w-md w-full bg-[#101626]/50 border border-slate-800/80 backdrop-blur-md p-8 md:p-10 rounded-3xl shadow-2xl relative z-10 space-y-6">
+        
+        <div ref={(el) => (elementsRef.current[0] = el)} className="text-center space-y-2">
+          <h2 className="text-white text-3xl font-black tracking-tight">
+            Welcome <span className="text-blue-500">Back</span>
+          </h2>
+          <p className="text-slate-400 text-sm">Sign in to unlock your custom cinematic experience.</p>
+        </div>
 
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-300 mb-1"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="text"
-                      id="email"
-                      name="email"
-                      value={signIn.email}
-                      placeholder="Enter Your Email"
-                      className="mt-2 block bg-transparent text-white w-full px-4 py-2 border border-gray-500 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="mb-6">
-                    <label
-                      htmlFor="password"
-                      className="block text-sm font-medium text-gray-300"
-                    >
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      value={signIn.password}
-                      placeholder="Enter Your Password"
-                      className="mt-2 block bg-transparent text-white w-full px-4 py-2 border border-gray-500 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div>
-                    <button
-                      type="submit"
-                      className="w-full bg-[#3b82f6] text-white py-2 px-4 rounded-md hover:bg-[#2563eb] transition duration-300"
-                    >
-                      {isLoading ? "Signing In..." : "Sign In"}
-                    </button>
-                  </div>
-                </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div ref={(el) => (elementsRef.current[1] = el)}>
+            <label
+              htmlFor="email"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2"
+            >
+              Email Address
+            </label>
+            <input
+              type="text"
+              id="email"
+              name="email"
+              value={signIn.email}
+              placeholder="Enter your email"
+              className="w-full bg-slate-950/80 text-white border border-slate-800/80 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 placeholder-slate-600 text-sm"
+              onChange={handleChange}
+            />
+          </div>
+          <div ref={(el) => (elementsRef.current[2] = el)}>
+            <label
+              htmlFor="password"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2"
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={signIn.password}
+              placeholder="Enter your password"
+              className="w-full bg-slate-950/80 text-white border border-slate-800/80 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 placeholder-slate-600 text-sm"
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div ref={(el) => (elementsRef.current[3] = el)} className="pt-2">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:shadow-blue-600/25"
+            >
+              {isLoading ? "Signing In..." : "Sign In"}
+            </button>
+          </div>
+        </form>
 
-                <div className="my-6 flex items-center">
-                  <div className="flex-grow border-t border-gray-600"></div>
-                  <span className="px-3 text-gray-400">OR</span>
-                  <div className="flex-grow border-t border-gray-600"></div>
-                </div>
+        <div ref={(el) => (elementsRef.current[4] = el)} className="flex items-center justify-between text-xs text-slate-500 my-4">
+          <div className="w-full h-px bg-slate-800"></div>
+          <span className="px-3 uppercase tracking-widest text-[10px] font-bold">OR</span>
+          <div className="w-full h-px bg-slate-800"></div>
+        </div>
 
-                <div className="flex justify-center">
-                  <Button
-                    variant="contained"
-                    sx={{
-                      backgroundColor: "#ea4335",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      paddingX: 3,
-                      ":hover": { backgroundColor: "#c53929" },
-                    }}
-                    onClick={GoogleSignIn}
-                  >
-                    Sign in with Google
-                  </Button>
-                </div>
+        <div ref={(el) => (elementsRef.current[5] = el)} className="flex justify-center">
+          <button
+            onClick={GoogleSignIn}
+            className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 hover:text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 hover:scale-[1.01] flex items-center justify-center gap-3 text-sm shadow-sm"
+          >
+            <GoogleIcon className="text-red-500 !text-lg" />
+            <span>Sign in with Google</span>
+          </button>
+        </div>
 
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-300">
-                    Don’t have an account?{" "}
-                    <Link
-                      to={"/signup"}
-                      className="text-[#facc15] hover:underline"
-                    >
-                      Sign up!
-                    </Link>
-                  </p>
-                  <p className="text-sm mt-2">
-                    <Link
-                      to={"/"}
-                      className="text-blue-400 hover:underline no-underline"
-                    >
-                      Forgot Password?
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </section>
-    </>
+        <div ref={(el) => (elementsRef.current[6] = el)} className="text-center pt-2 space-y-2 text-xs">
+          <p className="text-slate-400">
+            Don’t have an account?{" "}
+            <Link
+              to={"/signup"}
+              className="text-blue-500 font-semibold hover:underline"
+            >
+              Sign up free
+            </Link>
+          </p>
+          <p>
+            <Link
+              to={"/"}
+              className="text-slate-500 hover:text-slate-400 transition-colors"
+            >
+              Forgot Password?
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

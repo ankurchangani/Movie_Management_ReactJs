@@ -2,15 +2,20 @@ import { Avatar, Button } from "@mui/material";
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import WidgetsIcon from '@mui/icons-material/Widgets';
+import PeopleIcon from '@mui/icons-material/People';
 import userImage from "../../assets/images/user.png";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { AdminLogOutThink } from "../../services/actions/AuthAction";
 import { MenuNameAct } from "../../services/actions/MovieAct";
+import { useRef, useEffect } from "react";
+import gsap from "gsap";
 
 const Sidebar = () => {
     const dispatch = useDispatch();
     const { admin } = useSelector(state => state.AuthReducer);
+    const { menuName } = useSelector(state => state.MovieReducer);
+    const logoRef = useRef(null);
 
     const DeleteAdmin = () => {
         dispatch(AdminLogOutThink());
@@ -20,74 +25,109 @@ const Sidebar = () => {
         dispatch(MenuNameAct(name));
     };
 
+    useEffect(() => {
+        if (logoRef.current) {
+            gsap.fromTo(logoRef.current, 
+                { opacity: 0, y: -20 },
+                { opacity: 1, y: 0, duration: 1, ease: "power3.out" }
+            );
+        }
+    }, []);
+
+    const linkClass = (name) => {
+        const base = "px-4 py-3 text-white flex items-center rounded-xl no-underline transition-all duration-300 gap-3 font-medium ";
+        if (menuName === name) {
+            return base + "bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/20 text-white border-l-4 border-indigo-400";
+        }
+        return base + "hover:bg-white/5 text-slate-300 hover:text-white hover:translate-x-1";
+    };
+
     return (
-        <div className="sidebar-wrapper bg-[#474E68] border-r-2 !z-50 border-[#6B728E] h-screen fixed w-[250px] flex flex-col">
-        {/* Logo Section */}
-        <div className="logo text-center border-b-2 border-[#6B728E] py-[1.56rem] px-3">
-            <h1 className="text-white text-2xl font-bold">
-                Movie <span className="text-[14px] text-[#6B728E]">Mate</span>
-            </h1>
-        </div>
-    
-        {/* User Info Section */}
-        <div className="account py-4 px-3 border-b-2 border-[#6B728E] flex items-center justify-between">
-            <div className="flex items-center relative">
+        <div className="sidebar-wrapper glass-panel border-r border-white/10 h-screen w-[280px] flex flex-col justify-between py-6 px-4 z-50">
+            <div>
+                {/* Logo Section */}
+                <div ref={logoRef} className="logo flex items-center gap-3 border-b border-white/10 pb-6 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <span className="text-white font-extrabold text-xl">M</span>
+                    </div>
+                    <div>
+                        <h1 className="text-white text-xl font-bold tracking-tight">
+                            Movie<span className="text-indigo-400 font-semibold ml-0.5">Mate</span>
+                        </h1>
+                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block mt-[-2px]">Admin Console</span>
+                    </div>
+                </div>
+            
+                {/* User Info Section */}
                 {admin ? (
-                    <>
-                        <Avatar variant="rounded" sx={{ width: 45, height: 45 }}>
-                            <img src={admin.photoURL || userImage} alt="User" />
+                    <div className="account p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3 mb-6 transition-all hover:bg-white/10">
+                        <Avatar variant="rounded" sx={{ width: 42, height: 42, borderRadius: '12px' }} className="border border-white/20">
+                            <img src={admin.photoURL || userImage} alt="User" className="w-full h-full object-cover" />
                         </Avatar>
-                        <div className="ml-3">
-                            <ul className="m-0 p-0 list-none">
-                                <li className="text-white text-lg">{admin.displayName}</li>
-                                <li className="text-white text-sm">{admin.email}</li>
-                            </ul>
+                        <div className="overflow-hidden flex-grow">
+                            <p className="text-white text-sm font-semibold truncate m-0">{admin.displayName || "Admin User"}</p>
+                            <p className="text-slate-400 text-xs truncate m-0">{admin.email}</p>
                         </div>
-                    </>
+                    </div>
                 ) : (
-                    <p className="text-white">Loading...</p>
+                    <div className="animate-pulse bg-white/5 h-14 rounded-2xl mb-6"></div>
                 )}
-            </div>
-        </div>
-    
-        {/* Logout Button */}
-        <div className="logOut text-center mt-3">
-            <Button
-                className="!min-w-0 !bg-[#50577A] hover:!bg-[#6B728E] inline-block"
-                onClick={DeleteAdmin}
-            >
-                <ExitToAppIcon className="text-white" />
-                <span className="ms-2 text-white">Log Out</span>
-            </Button>
-        </div>
-    
-        {/* Navigation List */}
-        <nav className="flex-grow overflow-y-auto px-3 py-3">
-            <ul className="m-0 p-0 list-none">
-                <li className="px-2 my-2">
+            
+                {/* Navigation List */}
+                <nav className="flex-col gap-2 flex">
                     <Link
                         to={"/"}
-                        className="px-3 py-2 text-white bg-[#50577A] block rounded-lg hover:bg-[#6B728E] hover:text-white no-underline transition duration-200"
+                        className={linkClass("Dashboard")}
                         onClick={() => handleMenuName("Dashboard")}
                     >
-                        <DashboardIcon className="mr-3 text-white" />
+                        <DashboardIcon className={menuName === "Dashboard" ? "text-white" : "text-slate-400"} />
                         <span>Dashboard</span>
                     </Link>
-                </li>
-                <li className="px-2 my-2">
+
                     <Link
                         to={"/catalog"}
-                        className="px-3 py-2 text-white bg-[#50577A] block rounded-lg hover:bg-[#6B728E] hover:text-white no-underline transition duration-200"
+                        className={linkClass("Catalog")}
                         onClick={() => handleMenuName("Catalog")}
                     >
-                        <WidgetsIcon className="mr-3 text-white" />
+                        <WidgetsIcon className={menuName === "Catalog" ? "text-white" : "text-slate-400"} />
                         <span>Catalog</span>
                     </Link>
-                </li>
-            </ul>
-        </nav>
-    </div>
-    
+
+                    <Link
+                        to={"/users"}
+                        className={linkClass("Users")}
+                        onClick={() => handleMenuName("Users")}
+                    >
+                        <PeopleIcon className={menuName === "Users" ? "text-white" : "text-slate-400"} />
+                        <span>Users</span>
+                    </Link>
+                </nav>
+            </div>
+        
+            {/* Logout Button */}
+            <div className="pt-4 border-t border-white/10">
+                <Button
+                    onClick={DeleteAdmin}
+                    fullWidth
+                    sx={{
+                        textTransform: 'none',
+                        justifyContent: 'flex-start',
+                        color: '#94a3b8',
+                        padding: '10px 16px',
+                        borderRadius: '12px',
+                        gap: '12px',
+                        transition: 'all 0.3s',
+                        '&:hover': {
+                            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                            color: '#ef4444'
+                        }
+                    }}
+                >
+                    <ExitToAppIcon />
+                    <span className="font-semibold text-sm">Log Out</span>
+                </Button>
+            </div>
+        </div>
     );
 };
 

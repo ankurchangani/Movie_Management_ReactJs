@@ -1,14 +1,12 @@
-import { useState } from "react";
-import { Button } from "@mui/material";
-import { Col, Container, Row } from "react-bootstrap";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { SideBarAct } from "../../services/actions/MovieUserAct";
 import { AdminLogOutThink } from "../../services/actions/AuthAction";
-
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import TextureIcon from '@mui/icons-material/Texture';
 import CloseIcon from '@mui/icons-material/Close';
+import gsap from "gsap";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -16,6 +14,12 @@ const Header = () => {
   const { user } = useSelector((state) => state.AuthReducer);
 
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const headerRef = useRef(null);
+  const logoRef = useRef(null);
+  const navLinksRef = useRef([]);
+  const rightSectionRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   const SignOutUser = () => {
     dispatch(AdminLogOutThink());
@@ -26,76 +30,103 @@ const Header = () => {
     dispatch(SideBarAct());
   };
 
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    tl.fromTo(headerRef.current, { y: -100, opacity: 0 }, { y: 0, opacity: 1, duration: 1 })
+      .fromTo(logoRef.current, { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6 }, "-=0.5")
+      .fromTo(navLinksRef.current, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 }, "-=0.4")
+      .fromTo(rightSectionRef.current, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6 }, "-=0.5");
+  }, []);
+
+  useEffect(() => {
+    if (mobileNavOpen && mobileMenuRef.current) {
+      gsap.fromTo(mobileMenuRef.current,
+        { height: 0, opacity: 0 },
+        { height: "auto", opacity: 1, duration: 0.4, ease: "power2.out" }
+      );
+    }
+  }, [mobileNavOpen]);
+
   return (
-    <header className="py-4 px-2 fixed top-0 w-full z-50 bg-[#0f172a] border-b border-[#1e293b] shadow-md">
-      <Container fluid>
-        <Row className="align-items-center justify-content-between gx-2">
-          {/* Logo & Toggle */}
-          <Col xs={6} sm={4} md={3} className="d-flex align-items-center gap-2">
-            {/* Sidebar Toggle for mobile */}
-            <div className="d-xl-none">
-              <Button
-                onClick={handleMobileToggle}
-                className="!bg-[#1e293b] hover:!bg-[#3b82f6] !text-white rounded-3 p-2 !min-w-0"
-              >
-                {mobileNavOpen ? <CloseIcon /> : <TextureIcon />}
-              </Button>
-            </div>
+    <header ref={headerRef} className="py-4 px-6 fixed top-0 w-full z-50 bg-[#0b0f19]/80 backdrop-blur-md border-b border-slate-800/50 shadow-lg">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
 
-            {/* Logo */}
-            <h2 className="text-[#e2e8f0] text-xl font-bold m-0">
-              Movie<span className="text-[#3b82f6] text-sm">Mate</span>
-            </h2>
-          </Col>
+        {/* Left Side: Logo and Mobile Toggle */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleMobileToggle}
+            className="xl:hidden bg-slate-900 hover:bg-blue-600 text-white rounded-xl p-2.5 transition-all duration-300 border border-slate-800"
+          >
+            {mobileNavOpen ? <CloseIcon /> : <TextureIcon />}
+          </button>
 
-          {/* Desktop Navigation */}
-          <Col lg={6} className="d-none d-xl-flex justify-content-center">
-            <nav className="d-flex gap-4 align-items-center">
-              <Link to="/" className="text-[#e2e8f0] hover:text-[#3b82f6] transition-all">Home</Link>
+          <h2 ref={logoRef} className="text-[#e2e8f0] text-2xl font-black tracking-tight select-none cursor-pointer flex items-center">
+            Movie<span className="text-blue-500 text-sm font-semibold bg-blue-500/10 px-2.5 py-1 rounded-lg ml-1.5 border border-blue-500/20">Mate</span>
+          </h2>
+        </div>
 
-              <Link to="/about" className="text-[#e2e8f0] hover:text-[#3b82f6] transition-all">About</Link>
-
-              <Link to="/pricingplans" className="text-[#e2e8f0] hover:text-[#3b82f6] transition-all">Pricing</Link>
-
-              <Link to = '/faviourtemovie' className="text-[#e2e8f0] hover:text-[#3b82f6] transition-all">Favourite</Link>
-
-              <Link to="/contact" className="text-[#e2e8f0] hover:text-[#3b82f6] transition-all">Contact</Link>
-            </nav>
-          </Col>
-
-          {/* Right Section */}
-          <Col xs={6} sm={8} md={9} lg={3} className="d-flex justify-content-end align-items-center gap-2 gap-md-3">
-            {user?.email && (
-              <span className="text-[#e2e8f0] text-sm d-none d-md-inline-block text-truncate" style={{ maxWidth: '150px' }}>
-                Welcome, {user.email}
-              </span>
-            )}
-
-            <Button
-              onClick={SignOutUser}
-              className="!bg-[#1e293b] hover:!bg-[#3b82f6] !text-white d-flex align-items-center gap-2 px-2 rounded-3"
+        {/* Center: Desktop Navigation */}
+        <nav className="hidden xl:flex items-center gap-8">
+          {[
+            { to: "/", label: "Home" },
+            { to: "/about", label: "About" },
+            { to: "/pricingplans", label: "Pricing" },
+            { to: "/faviourtemovie", label: "Favourite" },
+            { to: "/contact", label: "Contact" }
+          ].map((item, idx) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              ref={(el) => (navLinksRef.current[idx] = el)}
+              className="text-slate-300 hover:text-white font-medium text-[15px] relative group py-1 transition-colors"
             >
-              <span className="d-none d-sm-inline">Sign Out</span>
-              <ExitToAppIcon />
-            </Button>
-          </Col>
-        </Row>
+              {item.label}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+          ))}
+        </nav>
 
-        {/* Mobile Navigation Menu */}
-        {mobileNavOpen && (
-          <div className="d-xl-none mt-2 px-3">
-            <nav className="d-flex flex-column gap-2">
-              <Link to="/" className="text-[#e2e8f0] hover:text-[#3b82f6]">Home</Link>
+        {/* Right Side: Welcome user & Logout */}
+        <div ref={rightSectionRef} className="flex items-center gap-4">
+          {user?.email && (
+            <div className="hidden md:flex flex-col text-right">
+              <span className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold">User Account</span>
+              <span className="text-slate-200 text-xs font-semibold max-w-[150px] truncate">{user.displayName || user.email}</span>
+            </div>
+          )}
+          <button
+            onClick={SignOutUser}
+            className="bg-slate-900 hover:bg-red-600/90 text-slate-200 hover:text-white flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 transition-all duration-300 font-medium text-xs shadow-sm"
+          >
+            <span>Sign Out</span>
+            <ExitToAppIcon className="!text-sm" />
+          </button>
+        </div>
+      </div>
 
-              <Link to="/about" className="text-[#e2e8f0] hover:text-[#3b82f6]">About</Link>
-
-              <Link to="/pricingplans" className="text-[#e2e8f0] hover:text-[#3b82f6]">Pricing</Link>
-
-                <Link to="/contact" className="text-[#e2e8f0] hover:text-[#3b82f6]">Contact</Link>
-            </nav>
-          </div>
-        )}
-      </Container>
+      {/* Mobile Navigation Menu */}
+      {mobileNavOpen && (
+        <div ref={mobileMenuRef} className="xl:hidden mt-4 overflow-hidden border-t border-slate-800/40 pt-4">
+          <nav className="flex flex-col gap-2">
+            {[
+              { to: "/", label: "Home" },
+              { to: "/about", label: "About" },
+              { to: "/pricingplans", label: "Pricing" },
+              { to: "/faviourtemovie", label: "Favourite" },
+              { to: "/contact", label: "Contact" }
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileNavOpen(false)}
+                className="text-slate-300 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-slate-900 transition-all block border-l-2 border-transparent hover:border-blue-500"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
